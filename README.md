@@ -14,9 +14,9 @@ There is a Makefile that can be referred to for available commands. There was a 
 
 The following tool packages are what were on the system used to build this:
 
-- UV (v0.13.4) https://docs.astral.sh/uv/
-- Yarn Classic (v1.22.22) https://classic.yarnpkg.com/en/docs/
-- GNU Make (v3.81) https://www.gnu.org/software/make/
+- UV (v0.13.4) <https://docs.astral.sh/uv/>
+- Yarn Classic (v1.22.22) <https://classic.yarnpkg.com/en/docs/>
+- GNU Make (v3.81) <https://www.gnu.org/software/make/>
 
 ### Installation steps
 
