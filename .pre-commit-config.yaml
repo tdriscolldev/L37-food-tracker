@@ -1,0 +1,35 @@
+repos:
+  # General hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+
+  # Ruff
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.2
+    hooks:
+      # Run the linter.
+      - id: ruff-check
+        args: [--fix]
+      # Run the formatter.
+      - id: ruff-format
+
+  # Prettier
+  - repo: local
+    hooks:
+      - id: svelte-check
+        name: svelte check
+        entry: cd client && yarn run check
+        language: system
+
+      - id: prettier-format
+        name: prettier format
+        entry: cd client && yarn run format
+        language: system
+
+      - id: prettier-lint
+        name: prettier lint
+        entry: cd client && yarn run lint
+        language: system

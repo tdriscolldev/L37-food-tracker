@@ -1,0 +1,35 @@
+{
+    "useGitignore": true,
+    "ignorePaths": [
+        "**/.gitignore",
+    ],
+    "language": "es",
+    "languageSettings": [
+        {
+            "languageId": "*",
+            "locale": "*",
+            "dictionaries": [
+                "bash",
+                "coding-compound-terms",
+                "computing-acronyms",
+                "cpp",
+                "cpp-compound-terms",
+                "css",
+                "en_us",
+                "filetypes",
+                "fonts",
+                "html",
+                "python",
+                "public-licenses",
+                "software-term-suggestions",
+                "software-tools",
+                "softwareTerms",
+                "svelte",
+                "web-services",
+            ],
+        }
+    ],
+    "userWords": [
+        "dockerized"
+    ]
+}

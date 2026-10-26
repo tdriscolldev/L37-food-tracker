@@ -1,0 +1,47 @@
+[project]
+name = "l37-food-tracker"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["food-server", "webhook-mimic"]
+
+[tool.uv.sources]
+food-server = { workspace = true }
+webhook-mimic = { workspace = true }
+
+[tool.uv.workspace]
+members = [
+    "food-server",
+    "tools/*",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.7.0",
+    "ruff>=0.17.1",
+]
+
+[tool.ruff]
+# preview = true
+line-length = 120
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint]
+ignore = [
+    "W191",
+    "E111",
+    "E114",
+    "E117",
+    "D203",
+    "D206",
+    "D300",
+    "Q000",
+    "Q001",
+    "Q002",
+    "Q003",
+    "Q004",
+    "COM812",
+    "COM819",
+    "ISC002",
+]
