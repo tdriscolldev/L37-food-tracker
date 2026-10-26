@@ -16,7 +16,13 @@ repos:
       # Run the formatter.
       - id: ruff-format
 
-  # Prettier
+  # Spell checking
+  - repo: https://github.com/streetsidesoftware/cspell-cli
+    rev: v10.4.0
+    hooks:
+      - id: cspell # Spell check changed files
+
+  # Local commands
   - repo: local
     hooks:
       - id: svelte-check
