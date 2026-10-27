@@ -91,7 +91,7 @@ tomorrow: true
 meal: breakfast
 ```
 
-The webhook orders have an order UUID string and order source (seemingly from the app), the polling API returns **food item** updates, not **order** updates, and has hashes and integer-based order numbers. But also provides additional information about those food items that is not present in the CSV nor webhook entries (individual item prices, categories, etc.)
+The webhook orders have an order UUID string and order source (seemingly from the app), the polling API returns **food item** updates, not **order** updates, and has hashes and integer-based order numbers. But also provides additional information about those food items that is not present in the CSV nor webhook entries (individual item prices, categories, etc.). Scheduling is also only present with the CSV, with a general today/tomorrow and meal.
 
 ### Database & Persistence
 

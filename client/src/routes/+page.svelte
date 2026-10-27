@@ -197,9 +197,9 @@
 				<div>Items({order.items?.length ?? '?'}):</div>
 				<div class="food-item-list">
 					{#each order.items as item}
-						{@const status = item.status}
+						{@const status = item.history.at(-1).status}
 						<div class="food-item">
-							<div class="status {status}">{item.status}</div>
+							<div class="status {status}">{status}</div>
 							<span>{item.name}</span>
 							<span>{item.price ? '$' + item.price : ''}</span>
 						</div>

@@ -14,12 +14,23 @@ logging.getLogger("food_server.api").setLevel(logging.DEBUG)
 logging.getLogger("uvicorn").setLevel(logging.INFO)
 
 
+async def poll_external_updates():
+    try:
+        while True:
+            await asyncio.sleep(1)
+    except asyncio.CancelledError:
+        logger.debug("Canceled polling task")
+    except Exception:
+        logger.exception("Exception in polling task")
+        raise
+
+
 async def amain():
     """Async main entrypoint for the food server."""
     logger.info("Starting server...")
     config = uvicorn.Config(get_app(), log_config=None, host="0.0.0.0")
     server = uvicorn.Server(config)
-    await server.serve()
+    await asyncio.gather(server.serve(), poll_external_updates(), return_exceptions=True)
 
 
 def main():

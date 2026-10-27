@@ -14,7 +14,7 @@ from starlette.websockets import WebSocketDisconnected
 
 from .connections import ConnectionManager
 from .database import SessionDep, init_db
-from .models import Item, ItemPublic, ItemUpdate, Order, OrderBase, OrderPublic, OrderUpdate
+from .models import Item, ItemHistory, ItemPublic, ItemUpdate, Order, OrderBase, OrderPublic, OrderUpdate
 
 logger = logging.getLogger(__name__)
 
@@ -145,13 +145,19 @@ async def get_item(*, item_id: int, session: SessionDep):
     return item
 
 
-@app.patch("/api/db/items/{item_id}")
+@app.patch("/api/db/items/{item_id}", response_model=ItemPublic)
 async def update_item(*, item_id: int, item_update: ItemUpdate, session: SessionDep):
     original_item = session.get(Item, item_id)
     if not original_item:
         raise HTTPException(status_code=404, detail=f"Item {item_id} not found")
     update_data = item_update.model_dump(exclude_unset=True)
-    original_item.sqlmodel_update(update_data)
+    original_item.name = update_data.get("name", original_item.name)
+    original_item.price = update_data.get("price", original_item.price)
+    original_item.category = update_data.get("category", original_item.category)
+    original_item.source_id = update_data.get("source_id", original_item.source_id)
+    new_status = update_data.get("status")
+    if new_status:
+        original_item.history.append(ItemHistory(status=new_status, time=datetime.datetime.now(datetime.UTC)))
     session.add(original_item)
     session.commit()
     session.refresh(original_item)
@@ -199,6 +205,11 @@ def handle_item_update(mapper, connection, target: Item):
     logger.info(f"Food Item update/created (#{target.id})")
     item = ItemPublic.model_validate(target)
     asyncio.run_coroutine_threadsafe(item_ws_connections.broadcast(item.model_dump_json()), asyncio.get_running_loop())
+    # Send update for parent order too
+    order = OrderPublic.model_validate(target.order)
+    asyncio.run_coroutine_threadsafe(
+        order_ws_connections.broadcast(order.model_dump_json()), asyncio.get_running_loop()
+    )
 
 
 @app.websocket("/api/db/items/ws")
@@ -251,8 +262,9 @@ async def receive_order(details: WebhookOrder, session: SessionDep):
         item = Item(
             name=item_str,
             price=None,
-            status="ordered",
         )
+        item_history = ItemHistory(status="ordered", time=time)
+        item.history.append(item_history)
         order.items.append(item)
 
     session.add(order)
@@ -316,8 +328,9 @@ async def upload_csv_file(file: UploadFile, session: SessionDep):
             item = Item(
                 name=item_str,
                 price=None,
-                status="ordered",
             )
+            item_history = ItemHistory(status="ordered", time=time)
+            item.history.append(item_history)
             order.items.append(item)
 
         session.add(order)

@@ -51,10 +51,22 @@ class OrderUpdate(sqlmodel.SQLModel):
 ################################
 
 
+class ItemHistoryBase(sqlmodel.SQLModel):
+    item_id: int | None = sqlmodel.Field(default=None, foreign_key="item.id")
+    status: str
+    time: datetime.datetime
+
+
+class ItemHistory(ItemHistoryBase, table=True):
+    id: int | None = sqlmodel.Field(default=None, primary_key=True)
+    item: "Item" = sqlmodel.Relationship(back_populates="history")
+
+
 class ItemBase(sqlmodel.SQLModel):
     name: str
     price: float | None
-    status: str
+    category: str | None = None
+    source_id: str | None = None
 
     order_id: int | None = sqlmodel.Field(default=None, foreign_key="order.id")
 
@@ -62,14 +74,17 @@ class ItemBase(sqlmodel.SQLModel):
 class Item(ItemBase, table=True):
     id: int | None = sqlmodel.Field(default=None, primary_key=True)
     order: Order = sqlmodel.Relationship(back_populates="items")
+    history: list[ItemHistory] = sqlmodel.Relationship(back_populates="item", cascade_delete=True)
 
 
 class ItemPublic(ItemBase):
     id: int | None
+    history: list[ItemHistory]
 
 
 class ItemUpdate(sqlmodel.SQLModel):
     name: str | None = None
     price: float | None = None
+    category: str | None = None
+    source_id: str | None = None
     status: str | None = None
-    order_id: int | None = None
