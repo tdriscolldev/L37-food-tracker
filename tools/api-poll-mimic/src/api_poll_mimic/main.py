@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 import datetime
 import json
@@ -53,13 +54,24 @@ async def fetch_item_update(time_since: datetime.datetime):
 async def amain():
     """Async main entrypoint for the API polling mimic server."""
     try:
+        # Parse CLI overrides
+        parser = argparse.ArgumentParser("API polling mimic server.")
+        parser.add_argument(
+            "--file", default="references/api_responses.jsonl", type=str, help="Path of api response jsonl file"
+        )
+        parser.add_argument("-p", "--port", default=8001, type=int, help="Port for the server to run on")
+        known_args, _unknown_args = parser.parse_known_args()
+        options = vars(known_args)
+
+        logger.info(options)
+
         # Load file
-        with (Path(__file__).resolve().parent / "api_responses.jsonl").open() as api_responses:
+        with Path(options["file"]).open() as api_responses:  # noqa: ASYNC230
             for response_line in api_responses:
                 responses.append(json.loads(response_line))
 
         logger.info("Starting server...")
-        config = uvicorn.Config(app, log_config=None, host="0.0.0.0", port=8001)
+        config = uvicorn.Config(app, log_config=None, host="0.0.0.0", port=options["port"])
         server = uvicorn.Server(config)
         await server.serve()
 

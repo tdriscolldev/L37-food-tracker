@@ -7,3 +7,11 @@ You can run it at the top-level after doing a `make install` and ensure the `foo
 ```bash
 uv run webhook-mimic
 ```
+
+## Customizing the Webhook request file input
+
+The file used to generate the webhook requests can be changed out
+
+```bash
+uv run webhook-mimic --file=responses/webhook_orders.jsonl
+```

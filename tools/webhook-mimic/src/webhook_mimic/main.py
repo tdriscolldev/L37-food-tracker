@@ -1,3 +1,4 @@
+import argparse
 import json
 import logging
 import time
@@ -16,8 +17,16 @@ logger.setLevel("DEBUG")
 def main():
     """Main entrypoint for webhook mimic."""
     try:
+        # Parse CLI overrides
+        parser = argparse.ArgumentParser("Webhook mimic server.")
+        parser.add_argument(
+            "--file", default="references/webhook_orders.jsonl", type=str, help="Path of webhook orders jsonl file"
+        )
+        known_args, _unknown_args = parser.parse_known_args()
+        options = vars(known_args)
+
         # Load file
-        with (Path(__file__).resolve().parent / "webhook_orders.jsonl").open() as orders:
+        with Path(options["file"]).open() as orders:
             for order_line in orders:
                 # Take raw jsonl line by line and pass as post requests
                 order_json = json.loads(order_line)

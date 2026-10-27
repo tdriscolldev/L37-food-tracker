@@ -9,3 +9,11 @@ uv run api-poll-mimic
 ```
 
 Which will spin up the server and make it available for hitting the endpoint of from the main `food-server`.
+
+## Customizing the API response file input
+
+The file used to generate the API responses can be changed out
+
+```bash
+uv run api-poll-mimic --file=responses/api_responses.jsonl
+```
