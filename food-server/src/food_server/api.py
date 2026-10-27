@@ -191,6 +191,64 @@ async def delete_item(item_id: int, session: SessionDep):
 
 
 ################################
+### Deployable Food Items API
+################################
+
+
+def get_latest_item_history_subquery():
+    return (
+        sqlmodel.select(
+            sqlmodel.col(ItemHistory.item_id).label("item_id"),
+            sqlalchemy.func.max(ItemHistory.time).label("latest_time"),
+        )
+        .group_by(sqlmodel.col(ItemHistory.item_id))
+        .subquery()
+    )
+
+
+def get_deployable_count(session: sqlmodel.Session) -> int:
+    latest_subquery = get_latest_item_history_subquery()
+    return session.exec(
+        sqlmodel.select(sqlalchemy.func.count(sqlalchemy.distinct(sqlmodel.col(ItemHistory.item_id))))
+        .select_from(ItemHistory)
+        .join(
+            latest_subquery,
+            sqlmodel.and_(
+                sqlmodel.col(ItemHistory.item_id) == latest_subquery.c.item_id,
+                sqlmodel.col(ItemHistory.time) == latest_subquery.c.latest_time,
+            ),
+        )
+        .where(sqlmodel.col(ItemHistory.status).not_in(("with_courier", "delivered", "canceled")))
+    ).one()
+
+
+@app.get("/api/db/dispatch", response_model=list[ItemPublic])
+async def list_deployable_items(*, session: SessionDep, offset: int = 0, limit: int = Query(default=100)):
+    latest_subquery = get_latest_item_history_subquery()
+    items = session.exec(
+        sqlmodel.select(Item)
+        .join(ItemHistory, sqlmodel.col(ItemHistory.item_id) == sqlmodel.col(Item.id))
+        .join(
+            latest_subquery,
+            sqlmodel.and_(
+                sqlmodel.col(ItemHistory.item_id) == latest_subquery.c.item_id,
+                sqlmodel.col(ItemHistory.time) == latest_subquery.c.latest_time,
+            ),
+        )
+        .where(sqlmodel.col(ItemHistory.status).not_in(("with_courier", "delivered", "canceled")))
+        .order_by(sqlmodel.col(ItemHistory.time).desc())
+        .offset(offset)
+        .limit(limit)
+    ).all()
+    return items
+
+
+@app.get("/api/db/dispatch/count")
+async def get_dispatch_count(*, session: SessionDep) -> int:
+    return get_deployable_count(session)
+
+
+################################
 ### Live Updates
 ################################
 
@@ -231,6 +289,7 @@ def handle_item_update(mapper, connection, target: Item):
 class database_status(pydantic.BaseModel):
     order_count: int
     item_count: int
+    deployable_count: int
 
 
 @event.listens_for(Item, "after_insert")
@@ -241,7 +300,8 @@ def handle_item_insert_delete(mapper, connection, target: Item | Order):
     with sqlmodel.Session(engine) as session:
         order_count = session.exec(sqlmodel.select(sqlalchemy.func.count()).select_from(Order)).one()
         item_count = session.exec(sqlmodel.select(sqlalchemy.func.count()).select_from(Item)).one()
-        status = database_status(order_count=order_count, item_count=item_count)
+        deployable_count = get_deployable_count(session)
+        status = database_status(order_count=order_count, item_count=item_count, deployable_count=deployable_count)
         asyncio.run_coroutine_threadsafe(
             count_ws_connections.broadcast(status.model_dump_json()), asyncio.get_running_loop()
         )

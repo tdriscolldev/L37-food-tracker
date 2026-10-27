@@ -68,3 +68,8 @@ There are several tools that are designed to be run in parallel to simulate the 
 
 ![CSV Upload Modal](images/csv_upload.png)
 *Screenshot of CSV Upload Modal*
+
+### Dispatch
+
+![Dispatch Items Page](images/dispatch.png)
+*Screenshot of Dispatch Items Page*

@@ -50,6 +50,7 @@
 		font-family: monospace;
 		font-weight: 600;
 		background-color: var(--color-background);
+        width: 100%;
 
 		span {
 			font-weight: 400;
@@ -82,6 +83,11 @@
 
         &.delivered {
             background-color: darkgreen;
+            color: white;
+        }
+
+        &.dispatched {
+            background-color: blue;
             color: white;
         }
     }

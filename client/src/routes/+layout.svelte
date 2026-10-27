@@ -2,10 +2,10 @@
 	import '../app.css';
 	import favicon from '#lib/assets/favicon.svg';
 	import { onMount } from 'svelte';
-	import {totalOrderCount, totalItemCount, errorList} from '#lib/stores.js';
+	import {totalOrderCount, totalItemCount, errorList, totalDispatchEligibleCount} from '#lib/stores.js';
 	import { create_reconnecting_ws } from '#lib/reconnecting_websocket.js';
 	import CSVUpload from '#lib/csv_upload.svelte';
-	import { House } from '@lucide/svelte';
+	import { Forward, House } from '@lucide/svelte';
 
 	/** @type {{children: import('svelte').Snippet}} */
 	let { children } = $props();
@@ -52,6 +52,17 @@
 			const item_result = await item_response.json();
 			console.debug('Fetched item count: ', item_result);
 			$totalItemCount = item_result;
+
+			const dispatch_eligible_response = await fetch(`http://localhost:8000/api/db/dispatch/count`);
+			if (!dispatch_eligible_response.ok) {
+				console.log(`Failed to fetch: ${dispatch_eligible_response.status}`);
+				fetchError.summary = dispatch_eligible_response.statusText;
+				return;
+			}
+
+			const dispatch_eligible_result = await dispatch_eligible_response.json();
+			console.debug('Fetched dispatch eligible item count: ', dispatch_eligible_result);
+			$totalDispatchEligibleCount = dispatch_eligible_result;
 		} catch (/** @type {any} */ error) {
 			console.error(error.message);
 			fetchError.summary = error.message;
@@ -76,9 +87,10 @@
 		ws.onmessage = (event) => {
 			try {
 				const data = JSON.parse(event.data);
-				console.debug('Received stats/count update for: ', data);
+				console.info('Received stats/count update for: ', data);
 				$totalOrderCount = data.order_count;
 				$totalItemCount = data.item_count;
+				$totalDispatchEligibleCount = data.deployable_count;
 			} catch (error) {
 				console.error(`Failed to update order list: ${error}`);
 			}
@@ -103,6 +115,7 @@
 		<nav>
 			<a href="/"><House/>Orders ({$totalOrderCount})</a>
 			<a href="/items">Items ({$totalItemCount})</a>
+			<a href="/dispatch"><Forward/>Dispatch ({$totalDispatchEligibleCount})</a>
 		</nav>
 		<div class="actions">
 			<CSVUpload/>
