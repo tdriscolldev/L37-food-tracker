@@ -36,6 +36,11 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
+"@lucide/svelte@^1.61.0":
+  version "1.61.0"
+  resolved "https://registry.yarnpkg.com/@lucide/svelte/-/svelte-1.61.0.tgz#b25038cb89e2d90bfc086972c269d64a14daa580"
+  integrity sha512-Vwj4ADoKgVogLFpEbXv2PS2hh2fj+aAqPuiNydI88Zkyb1l7veL4fXgRrOX3tgpESHhIGneNkSSYhHupvCBshg==
+
 "@oxc-project/types@=0.155.0":
   version "0.155.0"
   resolved "https://registry.yarnpkg.com/@oxc-project/types/-/types-0.155.0.tgz#a3525bff41bc0575839e95d2064635dd73dfef81"

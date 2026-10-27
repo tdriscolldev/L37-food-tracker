@@ -1,6 +1,6 @@
 # L37 Food Order Tracking
 
-This is a prototype of a order tracking system that can handle ingestion of order information from several sources (see [sample data and references](references))
+This is a prototype of a order tracking system that can handle ingestion of order information from several sources (see [sample data and references](references)). No AI was used to develop this (for better or for worse).
 
 ## Architecture & Considerations
 
@@ -51,3 +51,20 @@ There are several tools that are designed to be run in parallel to simulate the 
 - [Webhook Mimic](tools/webhook-mimic/README.md)
 - [Polling API Mimic Server](tools/api-poll-mimic/README.md)
 - CSV Upload (can be done via front-end client)
+
+## Client
+
+### Recent Orders Page
+
+![Recent Orders Page](images/recent_orders.png)
+*Screenshot of Recent Orders Page*
+
+### Recent Items Page
+
+![Recent Items Page](images/recent_items.png)
+*Screenshot of Recent Items Page*
+
+### CSV Upload
+
+![CSV Upload Modal](images/csv_upload.png)
+*Screenshot of CSV Upload Modal*

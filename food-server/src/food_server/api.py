@@ -4,6 +4,7 @@ import csv
 import datetime
 import logging
 
+import pydantic
 import sqlalchemy
 import sqlmodel
 from fastapi import FastAPI, HTTPException, Query, UploadFile, WebSocket, WebSocketDisconnect
@@ -13,7 +14,7 @@ from sqlalchemy import event
 from starlette.websockets import WebSocketDisconnected
 
 from .connections import ConnectionManager
-from .database import SessionDep, init_db
+from .database import SessionDep, engine, init_db
 from .models import Item, ItemHistory, ItemPublic, ItemUpdate, Order, OrderBase, OrderPublic, OrderUpdate
 
 logger = logging.getLogger(__name__)
@@ -44,7 +45,7 @@ async def startup_event():
 # Create connection manager for WebSocket connections
 order_ws_connections = ConnectionManager()
 item_ws_connections = ConnectionManager()
-
+count_ws_connections = ConnectionManager()
 
 ################################
 ### Orders API
@@ -137,6 +138,21 @@ async def list_items(*, session: SessionDep, offset: int = 0, limit: int = Query
     return items
 
 
+@app.get("/api/db/items/recent", response_model=list[ItemPublic])
+async def list_recent_items(*, session: SessionDep, offset: int = 0, limit: int = Query(default=100)):
+    subquery = (
+        sqlmodel.select(sqlalchemy.func.max(ItemHistory.time)).where(ItemHistory.item_id == Item.id).scalar_subquery()
+    )
+    items = session.exec(sqlmodel.select(Item).order_by(sqlmodel.desc(subquery)).offset(offset).limit(limit)).all()
+    return items
+
+
+@app.get("/api/db/items/count")
+async def get_item_count(*, session: SessionDep) -> int:
+    count = session.exec(sqlmodel.select(sqlalchemy.func.count()).select_from(Item)).one()
+    return count
+
+
 @app.get("/api/db/items/{item_id}")
 async def get_item(*, item_id: int, session: SessionDep):
     item = session.get(Item, item_id)
@@ -212,6 +228,25 @@ def handle_item_update(mapper, connection, target: Item):
     )
 
 
+class database_status(pydantic.BaseModel):
+    order_count: int
+    item_count: int
+
+
+@event.listens_for(Item, "after_insert")
+@event.listens_for(Item, "after_delete")
+@event.listens_for(Order, "after_insert")
+@event.listens_for(Order, "after_delete")
+def handle_item_insert_delete(mapper, connection, target: Item | Order):
+    with sqlmodel.Session(engine) as session:
+        order_count = session.exec(sqlmodel.select(sqlalchemy.func.count()).select_from(Order)).one()
+        item_count = session.exec(sqlmodel.select(sqlalchemy.func.count()).select_from(Item)).one()
+        status = database_status(order_count=order_count, item_count=item_count)
+        asyncio.run_coroutine_threadsafe(
+            count_ws_connections.broadcast(status.model_dump_json()), asyncio.get_running_loop()
+        )
+
+
 @app.websocket("/api/db/items/ws")
 async def item_websocket_endpoint(websocket: WebSocket):
     await item_ws_connections.connect(websocket)
@@ -220,6 +255,16 @@ async def item_websocket_endpoint(websocket: WebSocket):
             await websocket.receive()
     except (WebSocketDisconnect, WebSocketDisconnected):
         item_ws_connections.disconnect(websocket)
+
+
+@app.websocket("/api/db/status/ws")
+async def order_count_websocket_endpoint(websocket: WebSocket):
+    await count_ws_connections.connect(websocket)
+    try:
+        while True:
+            await websocket.receive()
+    except (WebSocketDisconnect, WebSocketDisconnected):
+        count_ws_connections.disconnect(websocket)
 
 
 ################################
