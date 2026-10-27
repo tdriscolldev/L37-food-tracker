@@ -4,6 +4,7 @@
         "**/.gitignore",
         "references/**",
         "**/webhook_orders.jsonl",
+        "**/api_responses.jsonl",
     ],
     "language": "es",
     "languageSettings": [

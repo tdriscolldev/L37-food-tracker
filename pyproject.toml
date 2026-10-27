@@ -2,11 +2,12 @@
 name = "l37-food-tracker"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = ["food-server", "webhook-mimic"]
+dependencies = ["food-server", "webhook-mimic", "api-poll-mimic"]
 
 [tool.uv.sources]
 food-server = { workspace = true }
 webhook-mimic = { workspace = true }
+api-poll-mimic = { workspace = true }
 
 [tool.uv.workspace]
 members = [

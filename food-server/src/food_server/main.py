@@ -5,6 +5,7 @@ import uvicorn
 
 from .api import get_app
 from .logging import setup_local_logging
+from .polling import poll_external_updates
 
 # Set up logging
 setup_local_logging()
@@ -12,17 +13,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel("DEBUG")
 logging.getLogger("food_server.api").setLevel(logging.DEBUG)
 logging.getLogger("uvicorn").setLevel(logging.INFO)
-
-
-async def poll_external_updates():
-    try:
-        while True:
-            await asyncio.sleep(1)
-    except asyncio.CancelledError:
-        logger.debug("Canceled polling task")
-    except Exception:
-        logger.exception("Exception in polling task")
-        raise
 
 
 async def amain():

@@ -49,3 +49,5 @@ You can go to [localhost:5173](http://localhost:5173) to then view the client da
 There are several tools that are designed to be run in parallel to simulate the different sources of food orders.
 
 - [Webhook Mimic](tools/webhook-mimic/README.md)
+- [Polling API Mimic Server](tools/api-poll-mimic/README.md)
+- CSV Upload (can be done via front-end client)
